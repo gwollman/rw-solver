@@ -935,7 +935,7 @@ let split cs =
 let get_train_id_n_seq_id vname =
   match List.map int_of_string (List.map char_list_to_string (split (string_to_char_list vname))) with
     [train_id; seq_id] -> (train_id, seq_id)
-  | _ -> raise Invalid_rsexpr
+  | _ -> raise (RWError (Printf.sprintf "get_train_id_n_seq_id %s" vname))
 ;;
 
 let explode_vname vname = 
@@ -955,9 +955,11 @@ let explode_vname vname =
   (define-fun x_1_2 () Int 20)
   (define-fun x_1_2 () Int (- 20))
 *)
+(* The first match clause used to be List (Sym "model"::xs),
+   but Z3 changed its output format. *)
 let analyze_model model =
   match model with
-    List (Sym "model"::xs) ->
+    List (xs) ->
     let rec g ts ps = function
         [] -> (List.rev ts, List.rev ps)
       | x::xs ->
@@ -968,7 +970,7 @@ let analyze_model model =
            | List [Sym "define-fun"; Sym vname; List []; Sym "Int";
                    List [Sym "-";  Int value]] ->
               (vname, -value)
-           | _ -> raise Invalid_rsexpr in
+           | _ -> raise (RWError ("parse error in analyze_model")) in
          let (tag, train_id, seq_id) = explode_vname vname in
          if tag = "x" then
            g ((train_id, seq_id, value)::ts) ps xs
@@ -976,7 +978,7 @@ let analyze_model model =
            g ts ((train_id, seq_id, value)::ps) xs
     in
     g [] [] xs
-  | _ -> raise Invalid_rsexpr
+  | _ -> raise (RWError ("parse error 2 in analyze_model"))
 ;;
 
 (*
