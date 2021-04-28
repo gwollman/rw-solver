@@ -1,0 +1,425 @@
+// Following layout parameters are copied from sample.rwm in this
+// repository.
+
+@train_top_margin    = 96
+@train_bottom_margin = 96
+@train_offset        = 96
+
+@circle_raidus       = 24
+@pen_width_station   = 16
+@pen_width_rail      = 16
+@pen_width_dash      = 16
+@pen_dash_on_length  = 8
+@pen_dash_off_length = 8
+
+@font_size_station   = 110 // 96 // 128 // 64
+@font_size_time      = 110 // 96 // 128 // 64
+
+period = 3600
+max_time = 5900
+
+// M0: Westminster layover (not an actual station, although it could be)
+struct {
+  station
+  name = "Westminster layover"
+  capacity = 5
+  links = [1]
+  headway = 600
+  req_time = (0,0)
+}
+
+// M1: Westminster to Wachusett interstation, 1.5 km
+struct {
+  capacity = 1
+  links = [1,2]
+  fifos = [(1,2),(2,1)]
+  excls = [(1,2)]
+  headway = 60
+  req_time = (180,180)
+}
+
+// M2: Wachusett station
+struct {
+  station
+  name = "Wachusett"
+  capacity = 1
+  links = [2,3]
+  headway = 60
+  req_time = (60,120)
+}
+
+// M3: Wachusett to Fitchburg interstation, ?
+// This is actually two (in some parts three) bidirectional tracks,
+// but for now, let's model it as a single-track and see if we need
+// to be more accurate.
+struct {
+  capacity = 1
+  links = [3,4]
+  fifos = [(3,4),(4,3)]
+  excls = [(3,4)]
+  headway = 60
+  req_time = (420,465)
+}
+
+// M4: Fitchburg station, one platform
+struct {
+  station
+  name = "Fitchburg"
+  capacity = 1
+  links = [4,5]
+  headway = 60
+  req_time = (60,120)
+}
+
+// M5: Fitchburg to North Leominster interstation, ?
+struct {
+  capacity = 2
+  links = [5,6]
+  fifos = [(5,6),(6,5)]
+  headway = 60
+  req_time = (360,390)
+}
+
+// M6: North Leominster station
+struct {
+  station
+  name = "North Leominster"
+  capacity = 2
+  links = [6,7]
+  headway = 60
+  req_time = (60,120)
+}
+
+// M7: North Leominster to Shirley interstation
+struct {
+  capacity = 2
+  links = [7,8]
+  fifos = [(7,8),(8,7)]
+  headway = 60
+  req_time = (420,450)
+}
+
+// M8: Shirley station
+struct {
+  station
+  name = "Shirley"
+  capacity = 2
+  links = [8,9]
+  headway = 60
+  req_time = (60,120)
+}
+
+// M9: Shirley to Ayer interstation
+struct {
+  capacity = 2
+  links = [9,10]
+  fifos = [(9,10),(10,9)]
+  headway = 60
+  req_time = (240,270)
+}
+
+// M10: Ayer station
+struct {
+  station
+  name = "Ayer"
+  capacity = 2
+  links = [10,11]
+  headway = 60
+  req_time = (60,120)
+}
+
+// M11: Ayer to Littleton interstation
+struct {
+  capacity = 2
+  links = [11,12]
+  fifos = [(11,12),(12,11)]
+  headway = 60
+  req_time = (420,450)
+}
+
+// M12: Littleton station
+struct {
+  station
+  name = "Littleton/495"
+  capacity = 2
+  links = [12,13]
+  headway = 600 // make sure we can turn a train on the platform here
+  req_time = (60,120)
+}
+
+// M13: Littleton to South Acton interstation
+struct {
+  capacity = 2
+  links = [13,14]
+  fifos = [(13,14),(14,13)]
+  headway = 60
+  req_time = (300,330)
+}
+
+// M14: South Acton station
+struct {
+  station
+  name = "South Acton"
+  capacity = 2
+  links = [14,15]
+  headway = 60
+  req_time = (60,120)
+}
+
+// M15: South Acton to West Concord interstation
+struct {
+  capacity = 2
+  links = [15,16]
+  fifos = [(15,16),(16,15)]
+  headway = 60
+  req_time = (180,210)
+}
+
+// M16: West Concord station
+struct {
+  station
+  name = "West Concord"
+  capacity = 2
+  links = [16,17]
+  headway = 60
+  req_time = (60,120)
+}
+
+// M17: West Concord to Concord interstation
+struct {
+  capacity = 2
+  links = [17,18]
+  fifos = [(17,18),(18,17)]
+  headway = 60
+  req_time = (180,210)
+}
+
+// M18: Concord station
+struct {
+  station
+  name = "Concord"
+  capacity = 2
+  links = [18,19]
+  headway = 60
+  req_time = (60,120)
+}
+
+// M19: Concord to Lincoln interstation
+struct {
+  capacity = 2
+  links = [19,20]
+  fifos = [(19,20),(20,19)]
+  headway = 60
+  req_time = (300,330)
+}
+
+// M20: Lincoln station
+struct {
+  station
+  name = "Lincoln"
+  capacity = 2
+  links = [20,21]
+  headway = 60
+  req_time = (60,120)
+}
+
+// M21: Lincoln to Kendal Green interstation
+struct {
+  capacity = 2
+  links = [21,22]
+  fifos = [(21,22),(22,21)]
+  headway = 60
+  req_time = (300,330)
+}
+
+// M22: Kendal Green station
+struct {
+  station
+  name = "Kendal Green"
+  capacity = 2
+  links = [22,23]
+  headway = 60
+  req_time = (60,120)
+}
+
+// M23: Kendal Green to Brandeis interstation
+struct {
+  capacity = 2
+  links = [23,24]
+  fifos = [(23,24),(24,23)]
+  headway = 60
+  req_time = (120,150)
+}
+
+// M24: Brandeis/Roberts station
+struct {
+  station
+  name = "Brandeis/Roberts"
+  capacity = 2
+  links = [24,25]
+  headway = 300
+  req_time = (60,120)
+}
+
+// M25: Brandeis to Waltham interstation
+// The track merge is within the limits of Waltham station, so
+// we count this interstation as being entirely double-tracked.
+struct {
+  capacity = 2
+  links = [25,26]
+  fifos = [(25,26),(26,25)]
+  headway = 60
+  req_time = (120,150)
+}
+
+// M26: Waltham station
+// The outbound platform fouls both tracks on the west side, so we count
+// this as a single-track station even though it technically has two
+// platforms.
+struct {
+  station
+  name = "Waltham"
+  capacity = 1
+  links = [26,27]
+  headway = 60
+  req_time = (60,120)
+}
+
+// M27: Waltham to Beaver Brook interlocking
+// This is the single-track section through downtown Waltham
+struct {
+  capacity = 1
+//  capacity = 2			// what if we restored double track?
+  links = [27,28]
+  fifos = [(27,28),(28,27)]
+  excls = [(27,28)]
+  headway = 60
+  req_time = (90,120)
+}
+
+// M28: Beaver Brook interlocking
+// Treating this as a station since there used to be one there and we'd
+// like to add an infill station anyway.  This also makes it possible to
+// concentrate the interlocking delays into a single location.
+struct {
+  station
+  name = "Beaver Brook"
+  capacity = 2	 // new station should be east of the switch
+  links = [28,29]
+  headway = 60
+  req_time = (0,300) // allow up to 5 minutes delay
+}
+
+// M29: Beaver Brook to Waverley interstation
+struct {
+  capacity = 2
+  links = [29,30]
+  fifos = [(29,30),(30,29)]
+  headway = 60
+  req_time = (150,180)
+}
+
+// M30: Waverley station
+struct {
+  station
+  name = "Waverley"
+  capacity = 2
+  links = [30,31]
+  headway = 60
+  req_time = (60,60)
+}
+
+// M31: Waverley to Belmont interstation
+struct {
+  capacity = 2
+  links = [31,32]
+  fifos = [(31,32),(32,31)]
+  headway = 60
+  req_time = (120,150)
+}
+
+// M32: Belmont station
+struct {
+  station
+  name = "Belmont"
+  capacity = 2
+  links = [32,33]
+  headway = 60
+  req_time = (60,60)
+}
+
+// M33: Belmont to Porter interstation
+struct {
+  capacity = 2
+  links = [33,34]
+  fifos = [(33,34),(34,33)]
+  headway = 60
+  req_time = (300,330)
+}
+
+// M34: Porter Square station
+struct {
+  station
+  name = "Porter Square"
+  capacity = 2
+  links = [34,35]
+  headway = 60
+  req_time = (60,60)
+}
+
+// M35: Porter to North Station interstation
+// I don't really know the details of the North Station throat or whether
+// there are any single-track bottlenecks through Cambridge and Charlestown.
+struct {
+  capacity = 2
+  links = [35,36]
+  fifos = [(35,36),(36,35)]
+  headway = 60
+  req_time = (600,690)
+}
+
+// M36: North Station, assuming we can use up to three tracks
+struct {
+  station
+  name = "North Station"
+  links = [36]
+  capacity = 3
+  headway = 600 // minimum turnaround time
+  req_time = (600,1200)
+}
+
+// inbound local
+train {
+  start_time = (0,0)
+  route = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36]
+}
+
+// outbound local
+train {
+  start_time = (0,1800)
+  route = [36,35,34,33,32,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1]
+}
+
+// inbound Littleton local
+train {
+  start_time = (0,3600)
+  route = [12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36]
+}
+
+// outbound Littleton local
+train {
+  start_time = (0,3600)
+  route = [36,35,34,33,32,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12]
+}
+
+// // inbound Brandeis local
+// train {
+//   start_time = (1800,3600)
+//   route = [24,25,26,27,28,29,30,31,32,33,34,35,36]
+// }
+
+// // outbound Brandeis local
+// train {
+//   start_time = (0,1800)
+//   route = [36,35,34,33,32,31,30,29,28,27,26,25,24]
+// }

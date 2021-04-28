@@ -1,0 +1,125 @@
+// Railway model for the Old Colony Dorchester bottleneck, using EMUs
+
+// Following layout parameters are copied from sample.rwm in this
+// repository.
+
+@train_top_margin    = 96
+@train_bottom_margin = 96
+@train_offset        = 96
+
+@circle_raidus       = 24
+@pen_width_station   = 16
+@pen_width_rail      = 16
+@pen_width_dash      = 16
+@pen_dash_on_length  = 8
+@pen_dash_off_length = 8
+
+@font_size_station   = 110 // 96 // 128 // 64
+@font_size_time      = 110 // 96 // 128 // 64
+
+max_time = 600
+period = 360
+
+// M0: South Station
+struct {
+  station
+  name = "South Station"
+  capacity = 2 // Old Colony can only access two platforms at BOS
+  links = [1]
+  headway = 600
+  req_time = (0,0)
+}
+
+// South Station to JFK, 3.2 km
+// schedule time 6 minutes
+
+// M1: South Station to Southampton, 1.9 km (60%)
+struct {
+  capacity = 2
+  links = [1,2]
+  fifos = [(1,2),(2,1)]
+  headway = 60
+  req_time = (85,100)
+}
+
+// M2: Southampton to JFK/UMass, 1.3 km (40%)
+struct {
+  capacity = 1
+  links = [2,3]
+  fifos = [(2,3),(3,2)]
+  excls = [(2,3)]
+  headway = 60
+  req_time = (57,67) // proceed without delay
+}
+
+// M3: JFK/UMass
+struct {
+  station
+  name = "JFK/UMass"
+  capacity = 1
+  links = [3,4]
+  headway = 60
+  req_time = (58,80)
+}
+
+// JFK to Quincy Ctr, 8.8 km
+// 2.5 km single (28%), 3.6 km double (41%), 2.7 km single (31%)
+
+// M4: Dorchester single-track, 2.5 km
+struct {
+  capacity = 2 // pretend it's been fixed
+  links = [4,6]
+  fifos = [(4,6),(6,4)]
+//  excls = [(4,6)]
+  headway = 60
+  req_time = (64,72)
+}
+
+// M5: Quincy double-track, 3.6 km
+struct {
+  capacity = 2
+  links = [6,7]
+  fifos = [(6,7),(7,6)]
+  headway = 60
+  req_time = (93,273) // allow 3 minutes delay exiting interlocking
+}
+
+// M6: Quincy single-track, 2.7 km
+struct {
+  capacity = 1
+  links = [7,8]
+  fifos = [(7,8),(8,7)]
+  excls = [(7,8)]
+  headway = 60
+  req_time = (71,84)
+}
+
+// M7: Quincy Center station
+struct {
+  station
+  name = "Quincy Ctr"
+  capacity = 1
+  links = [8,9]
+  headway = 60
+  req_time = (65,130)
+}
+
+// M9: single-track south of Quincy Center
+struct {
+  capacity = 1
+  links = [9]
+  headway = 60
+  req_time = (60,60)
+}
+
+// outbound
+train {
+  start_time = (0,1800)
+  route = [1,2,3,4,6,7,8]
+}
+
+// inbound
+train {
+  start_time = (0,3600)
+  route = [8,7,6,4,3,2,1]
+}

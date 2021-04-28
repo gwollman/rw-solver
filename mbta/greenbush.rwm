@@ -1,0 +1,426 @@
+// Railway model for the Greenbush Line
+
+// Following layout parameters are copied from sample.rwm in this
+// repository.
+
+@train_top_margin    = 96
+@train_bottom_margin = 96
+@train_offset        = 96
+
+@circle_raidus       = 24
+@pen_width_station   = 16
+@pen_width_rail      = 16
+@pen_width_dash      = 16
+@pen_dash_on_length  = 8
+@pen_dash_off_length = 8
+
+@font_size_station   = 110 // 96 // 128 // 64
+@font_size_time      = 110 // 96 // 128 // 64
+
+max_time = 4500
+period = 3600
+
+// M0: South Station
+struct {
+  station
+  name = "South Station"
+  capacity = 2 // Old Colony can only access two platforms at BOS
+  links = [1]
+  headway = 600
+  req_time = (0,0)
+}
+
+// South Station to JFK, 3.2 km
+// schedule time 6 minutes
+
+// M1: South Station to Southampton, 1.9 km (60%)
+struct {
+  capacity = 2
+  links = [1,2]
+  fifos = [(1,2),(2,1)]
+  headway = 60
+  req_time = (180,480) // allow up to 5 minutes delay at Southampton
+}
+
+// M2: Southampton to JFK/UMass, 1.3 km (40%)
+struct {
+  capacity = 1
+  links = [2,3]
+  fifos = [(2,3),(3,2)]
+  excls = [(2,3)]
+  headway = 60
+  req_time = (120,140) // proceed without delay
+}
+
+// M3: JFK/UMass
+struct {
+  station
+  name = "JFK/UMass"
+  capacity = 1
+  links = [3,4]
+  headway = 60
+  req_time = (60,180)
+}
+
+// JFK to Quincy Ctr, 8.8 km
+// 2.5 km single (28%), 3.6 km double (41%), 2.7 km single (31%)
+// schedule time is 8 minutes (118/172/130)
+
+// M4: Dorchester single-track, 2.5 km
+struct {
+  capacity = 1
+  links = [4,6]
+  fifos = [(4,6),(6,4)]
+  excls = [(4,6)]
+  headway = 60
+  req_time = (120,130)
+}
+
+// M5: Quincy double-track, 3.6 km
+struct {
+  capacity = 2
+  links = [6,7]
+  fifos = [(6,7),(7,6)]
+  headway = 60
+  req_time = (175,475) // allow 5 minutes delay exiting interlocking
+}
+
+// M6: Quincy single-track, 2.7 km
+struct {
+  capacity = 1
+  links = [7,8]
+  fifos = [(7,8),(8,7)]
+  excls = [(7,8)]
+  headway = 60
+  req_time = (130,145)
+}
+
+// M7: Quincy Center station
+struct {
+  station
+  name = "Quincy Ctr"
+  capacity = 1
+  links = [8,9]
+  headway = 60
+  req_time = (60,180)
+}
+
+// Quincy Ctr to East Braintree, 6.0 km
+// 3.4 km single (57%), 0.3 km wye track (5%), 1.6 km double (27%), 0.7 km single (12%)
+// schedule time is 8 to 9 minutes outbound, 10 minutes inbound
+// (assume additional inbound delay is at the double-track interlocking
+// east of the wye)
+// (272/24/128/56 to 306/27/144/63)
+
+// M8: More Quincy single-track, 3.4 km
+struct {
+  capacity = 1
+  links = [9,10]
+  fifos = [(9,10),(10,9)]
+  excls = [(9,10)]
+  headway = 60
+  req_time = (240,250)
+}
+
+// M9: Greenbush Branch wye, 0.3 km
+struct {
+  capacity = 1	// a flat junction, only one train allowed
+  links = [10,11,12]
+  fifos = [(10,11),(11,10),(10,12),(12,10)]
+  excls = [(10,11),(10,12)]
+  headway = 60
+  req_time = (20,30)
+}
+
+// M10: Interstation to East Braintree, double-track
+struct {
+  capacity = 2
+  links = [11,113]
+  fifos = [(11,113),(113,11)]
+  headway = 60
+  req_time = (115,415) // allow up to 5 minutes of delay here
+}
+
+// M11: Interstation to East Braintree (single-track)
+struct {
+  capacity = 1
+  links = [113,13]
+  fifos = [(113,13),(13,113)]
+  excls = [(113,13)]
+  headway = 60
+  req_time = (50,60)
+}
+
+// M12: East Braintree/Weymouth Landing station
+struct {
+  station
+  name = "East Braintree"
+  capacity = 1
+  links = [13,14]
+  headway = 60
+  req_time = (60,180)
+}
+
+// all single-track, schedule time 5 minutes
+
+// M13: East Braintree-East Weymouth interstation
+struct {
+  capacity = 1
+  links = [14,15]
+  fifos = [(14,15),(15,14)]
+  excls = [(14,15)]
+  headway = 60
+  req_time = (240,250)
+}
+
+// M14: East Weymouth station
+struct {
+  station
+  name = "East Weymouth"
+  capacity = 1
+  links = [15,16]
+  headway = 60
+  req_time = (60,180)
+}
+
+// East Weymouth to West Hingham, 2.29 km
+// 1.10 km single (48%) / 0.64 double (28%) / 0.55 single (24%)
+// schedule time 5 minutes (115/67/58)
+
+// M15: East Weymouth-West Hingham interstation (first single-track)
+struct {
+  capacity = 1
+  links = [16,117]
+  fifos = [(16,117),(117,16)]
+  excls = [(16,117)]
+  headway = 60
+  req_time = (115,125)
+}
+
+// M16: East Weymouth-West Hingham interstation (passing siding)
+struct {
+  capacity = 2
+  links = [117,217]
+  fifos = [(117,217),(117,217)]
+  headway = 60
+  req_time = (70,370) // allow up to 5 minutes delay here
+}
+
+// M17: East Weymouth-West Hingham interstation (second single-track)
+struct {
+  capacity = 1
+  links = [217,17]
+  fifos = [(217,17),(17,217)]
+  excls = [(217,17)]
+  headway = 60
+  req_time = (60,70)
+}
+
+// M18: West Hingham station
+struct {
+  station
+  name = "West Hingham"
+  capacity = 1
+  links = [17,18]
+  headway = 60
+  req_time = (60,180)
+}
+
+// no passing siding here
+
+// M19: West Hingham-Mantasket Jct interstation
+struct {
+  capacity = 1
+  links = [18,19]
+  fifos = [(18,19),(19,18)]
+  excls = [(18,19)]
+  headway = 60
+  req_time = (180,200)
+}
+
+// M20: Nantasket Jct station
+struct {
+  station
+  name = "Nantasket Jct"
+  capacity = 1
+  links = [19,20]
+  headway = 60
+  req_time = (60,180)
+}
+
+// no passing siding here
+
+// M21: Nantasket Jct-Cohasset interstation
+struct {
+  capacity = 1
+  links = [20,21]
+  fifos = [(20,21),(21,20)]
+  excls = [(20,21)]
+  headway = 60
+  req_time = (120,130)
+}
+
+// M22: Cohasset station
+struct {
+  station
+  name = "Cohasset"
+  capacity = 1
+  links = [21,22]
+  headway = 60
+  req_time = (60,180)
+}
+
+// Cohasset to North Scituate, 5.10 km
+// 0.68 km single (13%), 1.09 km double (21%), 3.33 km single (66%)
+// schedule time, 8 minutes (55/88/277)
+
+// M23: Cohasset-North Scituate interstation (first single-track)
+struct {
+  capacity = 1
+  links = [22,123]
+  fifos = [(22,123),(123,22)]
+  excls = [(22,123)]
+  headway = 60
+  req_time = (55,65)
+}
+
+// M24: Cohasset-North Scituate interstation
+struct {
+  capacity = 2
+  links = [123,223]
+  fifos = [(123,223),(223,123)]
+  headway = 60
+  req_time = (90,390) // allow up to 5 minutes delay here
+}
+
+// M25: Cohasset-North Scituate interstation
+struct {
+  capacity = 1
+  links = [223,23]
+  fifos = [(223,23),(23,223)]
+  excls = [(223,23)]
+  headway = 60
+  req_time = (280,300)
+}
+
+// M26: North Scituate station
+struct {
+  station
+  name = "North Scituate"
+  capacity = 1
+  links = [23,24]
+  headway = 60
+  req_time = (60,180)
+}
+
+// North Scituate to Greenbush, 6.58 km
+// 5.48 km single (83%), 1.10 km double (17%) (into yard ladder)
+// schedule time: 12 minutes (598/122)
+
+// M27: North Scituate-Greenbush interstation (single-track)
+struct {
+  capacity = 1
+  links = [24,125]
+  fifos = [(24,125),(125,24)]
+  excls = [(24,125)]
+  headway = 60
+  req_time = (590,590)
+}
+
+// M27: North Scituate-Greenbush interstation (double-track)
+struct {
+  capacity = 2
+  links = [125,25]
+  fifos = [(125,25),(25,125)]
+  headway = 60
+  req_time = (120,420) // allow up to 5 minutes of delay here
+}
+
+// M23: Greenbush station
+struct {
+  station
+  name = "Greenbush"
+  capacity = 1
+  links = [25,26]
+  headway = 60
+  req_time = (120,120)
+}
+
+// M24: Greenbush layover
+struct {
+  capacity = 1
+  links = [26]
+  headway = 600
+  req_time = (600,600)
+}
+  
+// M25: Quincy Jct. to Braintree interstation, 1.2 km
+// 835 m single, 380 m double, but just call it single-track
+// Quincy Center to Braintree scheduled time 5 minutes
+struct {
+  capacity = 1
+  links = [12,27]
+  headway = 60
+  req_time = (260,260)
+}
+
+// M26: Braintree station
+// Model the junction south of the station as part of it (there is a
+// universal crossover).
+struct {
+  station
+  name = "Braintree"
+  capacity = 2
+  links = [27,28,29]
+  headway = 60
+  req_time = (60,180)
+}
+
+// Link-ID 29 is reserved for Middleboro line
+
+// M27: Braintree to South Weymouth interstation
+// schedule time is 6 minutes
+struct {
+  capacity = 1
+  links = [28,30]
+  headway = 60
+  req_time = (300,330)
+}
+
+// M28: South Weymouth station
+struct {
+  station
+  name = "South Weymouth"
+  capacity = 1
+  links = [30]
+  headway = 60
+  req_time = (60,180)
+}
+
+// outbound Greenbush
+train {
+  start_time = (0,1800)
+  route = [1,2,3,4,6,7,8,9,10,11,113,13,14,15,16,117,217,17,18,19,20,21,22,123,223,23,24,125,25,26]
+//  req_times = [(a,b),(c,d),(e,f)]
+//  req_tracks = [_, _, _]
+}
+
+// outbound Kingston
+train {
+  start_time = (0,1800)
+  route = [1,2,3,4,6,7,8,9,10,12,27,28,30]
+}
+
+// inbound Greenbush
+train {
+  start_time = (0,3600)
+  route = [26,25,125,24,23,223,123,22,21,20,19,18,17,217,117,16,15,14,13,113,11,10,9,8,7,6,4,3,2,1]
+//  req_times = []
+//  req_tracks = []
+}
+
+// inbound Kingston
+train {
+  start_time = (0,3600)
+  route = [30,28,27,12,10,9,8,7,6,4,3,2,1]
+}
