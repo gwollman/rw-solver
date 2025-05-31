@@ -1,0 +1,896 @@
+// Worcester Main Line -- zone express model
+//
+// This model simulates the zone express setup currently in place
+// on this line during AM peaks, with Worcester trains running
+// express from West Natick to Boston Landing and local trains serving
+// all stops from Framingham through Newton.
+//
+// The Worcester Line has 100% double-track between Worcester Union
+// station and South Station.  However, there are various restrictions:
+//
+//  * Auburndale, West Newton, and Newtonville stations only platform
+//    track 2.  It is planned to reconstruct Newtonville (and eventually
+//    all three) to platform both tracks.
+//  * In Wellesley and Natick, railroad management prefers to use track
+//    2 for all stops in the peak direction, because it is closer to
+//    the parking lots at Wellesley Hills and Wellesley Farms, and there
+//    is no crossover between Riverside and Framingham.
+//  * It is planned but as yet not funded to restore the third track
+//    between Auburndale and Framingham, which will allow for easier
+//    scheduling of expresses and require reconstruction of all stations
+//    except Natick Center, eliminating the parking-lot issue above.
+//  * Worcester Union Station is a single-track station currently but
+//    the second track will open soon.
+//  * The Worcester layover is east (inbound) of the station, so trains
+//    going out of service must make a reverse move back up the main
+//    line to the switch leading into the yard.  We don't model this.
+//
+// Stations and interlockings:
+// Worcester, CP 43, Grafton, Westborough, Southborough,
+// Ashland, [Fountain St. Yard], CP 22, Framingham, West Natick,
+// Natick Center, Wellesley Square, Wellesley Hills, Wellesley Farms,
+// CP 11, Riverside Jct, Auburndale, West Newton, Newtonville,
+// [Newton Corner infill], CP 6, Boston Landing, [West Station infill],
+// CP 3, Lansdowne, Back Bay, COVE, South Station
+//
+// 2025 scheduled times in minutes:
+// Worcester-Grafton 12 inbound, 20-22 outbound
+// Worcester-Framingham 29 inbound, 23 outbound
+// Grafton-Westboro 5-6 both directions
+// Westboro-Southboro 9 both directions
+// Southboro-Ashland 4-5 inbound, 5-6 outbound
+// Ashland-Framingham 10 inbound, 5-6 outbound
+// Framingham-West Natick 5-6 inbound, 5-9 outbound
+// West Natick-Natick Center 5-7 inbound, 5 outbound
+// Framingham-Lansdowne 24 inbound, 23 outbound
+// Framingham-Wellesley Square 12 outbound
+// West Natick-Boston Landing 18 inbound, 17-21 outbound
+// Natick Center-Wellesley Square 4 inbound, 4-6 outbound
+// Wellesley Square-Wellesley Hills 3-4 both directions
+// Wellesley Hills-Wellesley Farms 3 inbound, 2-3 outbound
+// Wellesley Farms-Auburndale 5 inbound, 4-5 outbound
+// Wellesley Farms-Boston Landing 9-12 inbound, 10-11 outbound
+// Auburndale-West Newton 3 both directions
+// West Newton-Newtonville 3-4 both directions
+// Newtonville-Boston Landing 5-6 inbound, 4-6 outbound
+// Boston Landing-Lansdowne 5 inbound, 5-6 outbound
+// Lansdowne-Back Bay 7-16 inbound, 5 outbound
+// Back Bay-South Station 6 both directions
+// [COVE is about 4 minutes from South Station outbound]
+//
+// The existence of various service patterns including expresses gives
+// us the opportunity to factor out station dwells from at least some
+// of the stations.  We really want to get all of the dwell into the
+// station timing.  Of course these schedules are still padded to an
+// unknown degree, but it's a starting point.  We can also assume that
+// the actual track time is identical in both directions, so whichever
+// is lower is the one we'll go with.
+//
+// Unfortunately, because these are dog-slow diesel trains, there is
+// a substantial stop penalty that also has to be account for, but
+// only on stopping services, not on expresses.
+
+// Track numbering: the software expects distinct numbers for each track
+// segment, which is not how American railroads do it.  We're going to
+// model this by numbering segments XYY, where X is the track number
+// (New Haven-style between South Station to CP 3, B&A-style from CP 3 to
+// Worcester) and YY is a unique segment identifier.
+//
+// In the B&A system, track 1 is the northernmost (notionally westbound)
+// and track 2 is the one just south of that (notionally eastbound).
+// In the NH system, track 7 is the northernmost and track 5 is the
+// one just south of that.  (The tracks at Back Bay are numbered 7-5-3-1-2.)
+//
+
+// The following layout parameters are copied from sample.rwm in this
+// repository.
+@train_top_margin    = 96
+@train_bottom_margin = 96
+@train_offset        = 96
+
+@circle_raidus       = 24
+@pen_width_station   = 16
+@pen_width_rail      = 16
+@pen_width_dash      = 16
+@pen_dash_on_length  = 8
+@pen_dash_off_length = 8
+
+@font_size_station   = 110 // 96 // 128 // 64
+@font_size_time      = 110 // 96 // 128 // 64
+
+period = 2400
+max_time = 7200
+
+// M0: Worcester Union Station
+// CP 45 (junction P&W RR) is just past the west end of the platform
+struct {
+       station
+       name = "Worcester"
+       capacity = 2
+       headway = 300
+       links = [101,201]
+}
+
+// M1: Worcester Union to CP 43, about half a mile
+struct {
+       capacity = 2
+       headway = 300
+       links = [101,201,102,202]
+       fifos = [(101,102),(102,101),(201,202),(202,201)]
+//       excls = [(101,102),(201,202)]
+}
+
+// M2: CP 43, end of MBTA ownership and interlocking for access to
+// MBTA Worcester Layover and CSX Worcester Intermodal
+// Link 900 is the lead to the layover yard
+struct {
+       name = "CP 43"
+       capacity = 1
+       headway = 300
+       links = [102,202,103,203,900]
+       fifos = [(102,103),(103,102),(202,203),(203,202),(103,900),(900,103),(203,900),(900,203)]
+//       excls = [(102,103),(202,203),(103,900),(203,900)]
+}
+
+// M3: Worcester Layover
+// struct {
+//       station
+//       name = "Worcester Layover"
+//       capacity = 5
+//       headway = 900
+//       links = [900]
+//       req_time = (900,_)
+//}
+
+// M4: CP 43 to Grafton
+struct {
+       capacity = 2
+       headway = 300
+       links = [103,203,104,204]
+       fifos = [(103,104),(104,103),(203,204),(204,203)]
+//       excls = [(103,104),(203,204)]
+}
+
+// M5: Grafton station
+struct {
+       station
+       name = "Grafton"
+       capacity = 2
+       headway = 300
+       links = [104,204,105,205]
+//       fifos = [(104,105),(105,104),(204,205),(205,204)]
+//       excls = [(104,105),(204,205)]
+}
+
+// M6: Grafton to Westboro
+struct {
+       capacity = 2
+       headway = 300
+       links = [105,106,205,206]
+       fifos = [(105,106),(106,105),(205,206),(206,205)]
+//       excls = [(105,106),(205,206)]
+}
+
+// M7: Westboro station
+struct {
+       station
+       name = "Westborough"
+       capacity = 2
+       headway = 300
+       links = [106,107,206,207]
+//       fifos = [(106,107),(107,106),(206,207),(207,206)]
+//       excls = [(106,107),(206,207)]
+}
+
+// M8: Westboro to Cordaville
+struct {
+       capacity = 2
+       headway = 300
+       links = [107,108,207,208]
+       fifos = [(107,108),(108,107),(207,208),(208,207)]
+//       excls = [(107,108),(207,208)]
+}
+
+// M9: Cordaville station (called "Southborough")
+struct {
+       station
+       name = "Southborough"
+       capacity = 2
+       headway = 300
+       links = [108,109,208,209]
+//       fifos = [(108,109),(109,108),(208,209),(209,208)]
+//       excls = [(108,109),(208,209)]
+}
+
+// M10: Cordaville to Ashland
+struct {
+       capacity = 2
+       headway = 300
+       links = [109,110,209,210]
+       fifos = [(109,110),(110,109),(209,210),(210,209)]
+//       excls = [(109,110),(209,210)]
+}
+
+// M11: Ashland station
+struct {
+       station
+       name = "Ashland"
+       capacity = 2
+       headway = 300
+       links = [110,111,210,211]
+//       fifos = [(110,111),(111,110),(210,211),(211,210)]
+//       excls = [(110,111),(210,211)]
+}
+
+// M12: Ashland to CP 22
+struct {
+       capacity = 2
+       headway = 300
+       links = [111,112,211,212]
+       fifos = [(111,112),(112,111),(211,212),(212,211)]
+//       excls = [(111,112),(211,212)]
+}
+
+// M13: Fountain St. yard
+struct {
+       name = "Fountain St. Yard"
+       capacity = 1
+       links = [901]
+       headway = 900
+}
+
+// M14: CP 22 (just west of Framingham station)
+struct {
+       name = "CP 22"
+       capacity = 1
+       headway = 300
+       links = [112,113,212,213,901]
+       fifos = [(112,113),(113,112),(901,113),(212,213),(213,212),(213,901)]
+       excls = [(112,113),(212,213),(901,113),(213,901)]
+}
+
+// M15: Framingham station
+struct {
+       station
+       name = "Framingham"
+       capacity = 2
+       headway = 300
+       links = [113,114,213,214]
+//       fifos = [(113,114),(114,113),(213,214),(214,213)]
+//       excls = [(113,114),(213,214)]
+}
+
+// M16: Framingham to West Natick
+struct {
+       capacity = 2
+       headway = 300
+       links = [114,115,214,215]
+       fifos = [(114,115),(115,114),(214,215),(215,214)]
+//       excls = [(114,115),(214,215)]
+}
+
+// M17: West Natick station
+struct {
+       station
+       name = "West Natick"
+       capacity = 2
+       headway = 300
+       links = [115,116,215,216]
+//       fifos = [(115,116),(116,115),(215,216),(216,215)]
+//       excls = [(115,116),(215,216)]
+}
+
+// M18: West Natick to Natick Center
+struct {
+       capacity = 2
+       headway = 300
+       links = [116,117,216,217]
+       fifos = [(116,117),(117,116),(216,217),(217,216)]
+//       excls = [(116,117),(216,217)]
+}
+
+// M19: Natick Center station
+struct {
+       station
+       name = "Natick Center"
+       capacity = 2
+       headway = 300
+       links = [117,118,217,218]
+//       fifos = [(117,118),(118,117),(217,218),(218,217)]
+//       excls = [(117,118),(217,218)]
+}
+
+// M20: Natick Center to Wellesley Square
+struct {
+       capacity = 2
+       headway = 300
+       links = [118,119,218,219]
+       fifos = [(118,119),(119,118),(218,219),(219,218)]
+//       excls = [(118,119),(218,219)]
+}
+
+// M21: Wellesley Square station
+struct {
+       station
+       name = "Wellesley Square"
+       capacity = 2
+       headway = 300
+       links = [119,120,219,220]
+//       fifos = [(119,120),(120,119),(219,220),(220,219)]
+//       excls = [(119,120),(219,220)]
+}
+
+// M22: Wellesley Square to Wellesley Hills
+struct {
+       capacity = 2
+       headway = 300
+       links = [120,121,220,221]
+       fifos = [(120,121),(121,120),(220,221),(221,220)]
+//       excls = [(120,121),(220,221)]
+}
+
+// M23: Wellesley Hills station
+struct {
+       station
+       name = "Wellesley Hills"
+       capacity = 2
+       headway = 300
+       links = [121,122,221,222]
+//       fifos = [(121,122),(122,121),(221,222),(222,221)]
+//       excls = [(121,122),(221,222)]
+}
+
+// M24: Wellesley Hills to Wellesley Farms
+struct {
+       capacity = 2
+       headway = 300
+       links = [122,123,222,223]
+       fifos = [(122,123),(123,122),(222,223),(223,222)]
+//       excls = [(122,123),(222,223)]
+}
+
+// M25: Wellesley Farms station
+struct {
+       station
+       name = "Wellesley Farms"
+       capacity = 2
+       headway = 300
+       links = [123,124,223,224]
+//       fifos = [(123,124),(124,123),(223,224),(224,223)]
+//       excls = [(123,124),(223,224)]
+}
+
+// M26: Wellesley Farms to CP 11
+struct {
+       capacity = 2
+       headway = 300
+       links = [124,125,224,225]
+       fifos = [(124,125),(125,124),(224,225),(225,224)]
+//       excls = [(124,125),(224,225)]
+}
+
+// M27: CP 11
+struct {
+       capacity = 1
+       headway = 300
+       name = "CP 11"
+       links = [125,126,225,226]
+}
+
+// M28: CP 11 to Auburndale (track 2)
+struct {
+       capacity = 1
+       headway = 300
+       links = [226,227]
+       fifos = [(226,227),(227,226)]
+//       excls = [(226,227)]
+}
+
+// M29: CP 11 to CP 6 (track 1)
+struct {
+       capacity = 4
+       headway = 300
+       links = [126,127]
+       fifos = [(126,127),(127,126)]
+//       excls = [(126,127)]
+}
+
+// M30: Auburndale station
+struct {
+       station
+       name = "Auburndale"
+       capacity = 1
+       headway = 300
+       links = [227,229]
+}
+
+// M31: Auburndale to West Newton
+struct {
+       capacity = 1
+       headway = 300
+       links = [229,230]
+       fifos = [(229,230),(230,229)]
+//       excls = [(229,230)]
+}       
+
+// M32: West Newton station
+struct {
+       station
+       name = "West Newton"
+       capacity = 1
+       headway = 300
+       links = [230,231]
+}
+
+// M33: West Newton to Newtonville
+struct {
+       capacity = 1
+       headway = 300
+       links = [231,232]
+       fifos = [(231,232),(232,231)]
+//       excls = [(231,232)]
+}
+
+// M34: Newtonville station
+struct {
+       station
+       name = "Newtonville"
+       capacity = 1
+       headway = 300
+       links = [232,233]
+}
+
+// M35: Newtonville to CP 6
+struct {
+       capacity = 1
+       headway = 300
+       links = [233,234]
+       fifos = [(233,234),(234,233)]
+//       excls = [(233,234)]
+}
+
+// M36: CP 6
+struct {
+       name = "CP 6"
+       capacity = 1
+       headway = 300
+       links = [127,135,234,235]
+}
+
+// M37: CP 6 to Boston Landing
+struct {
+       capacity = 2
+       headway = 300
+       links = [135,136,235,236]
+       fifos = [(135,136),(136,135),(235,236),(236,235)]
+//       excls = [(135,136),(235,236)]
+}
+
+// M38: Boston Landing station
+struct {
+       station
+       name = "Boston Landing"
+       capacity = 2
+       headway = 300
+       links = [136,137,236,237]
+//       fifos = [(136,137),(137,136),(236,237),(237,236)]
+//       excls = [(136,137),(236,237)]
+}
+
+// M39: Boston Landing to CP 3
+struct {
+       capacity = 2
+       headway = 600
+       links = [137,138,237,238]
+       fifos = [(137,138),(138,137),(237,238),(238,237)]
+//       excls = [(137,138),(237,238)]
+}
+
+// M40: CP 3
+struct {
+       name = "CP 3"
+       capacity = 1
+       headway = 300
+       links = [138,701,238,501]
+}
+
+// M41: CP 3 to Lansdowne
+struct {
+       capacity = 2
+       headway = 300
+       links = [701,702,501,502]
+       fifos = [(701,702),(702,701),(501,502),(502,501)]
+//       excls = [(701,702),(501,502)]
+}
+
+// M42: Lansdowne station
+struct {
+       station
+       name = "Lansdowne"
+       capacity = 2
+       headway = 300
+       links = [702,703,502,503]
+//       fifos = [(702,703),(703,702),(502,503),(503,502)]
+//       excls = [(702,703),(502,503)]
+}
+
+// M43: Lansdowne to Back Bay
+struct {
+	capacity = 2
+        headway = 300
+	links = [703,704,503,504]
+	fifos = [(703,704),(704,703),(503,504),(504,503)]
+//	excls = [(703,704),(503,504)]
+}
+
+// M44: Back Bay station
+struct {
+       station
+       name = "Back Bay"
+       capacity = 2
+       headway = 300
+       links = [704,705,504,505]
+       fifos = [(704,705),(705,704),(504,505),(505,504)]
+       excls = [(704,705),(504,505)]
+}
+
+// M45: Back Bay to South Station (subsumes COVE and Tower 1)
+struct {
+       capacity = 2
+       headway = 300
+       links = [705,706,505,506]
+       fifos = [(705,706),(706,705),(505,506),(506,505)]
+//       excls = [(705,706),(505,506)]
+}
+
+// M46: South Station terminal
+struct {
+       station
+       name = "South Station"
+       capacity = 7
+       headway = 300
+       links = [706,506]
+       req_time = (900,_)
+}
+
+// Local trains run between Fountain St. Yard in Framingham
+// and South Station, making all stops.
+//
+// This is complicated because we want to serve the single-platform
+// Newton stops on track 2, which requires a track change for
+// outbound trains (and obviously conflicts with inbound trains that
+// want to serve those stations.
+//
+// Interstation times based on our railway physics simulator, which
+// does not take into account adhesion limits.  Dwell times assumed
+// to be 60 to 120 seconds at each station.  Max interstation padded
+// by 7%.
+//
+// Best case inbound: 3509 s (58 minutes) including yard pull-out
+// and Framingham dwell; 51 minutes schedule time
+//
+// Worst case inbound: 4504 s (75 minutes) inclusive, 68 schedule
+//
+// Best case outbound: 3569 s (59 minutes) including yard pull-out
+// and Framingham dwell; 52 minutes schedule time
+//
+// Worst case outbound: 4624 s (77 minutes) inclusive, 70 schedule
+//
+train {
+	start_time = (0,3600)
+	total_time = 4800 // worst case with 2 diverging moves
+	route = [706,705,704,703,702,701,
+	      	 138,137,136,135,
+		 // switch to track 2 at CP 6
+		 234,233,232,231,230,229,227,226,
+		 // switch back to track 1 at CP 11
+		 125,124,123,122,121,120,119,118,117,116,115,114,113,901]
+	req_times = [
+		     // Back Bay to South Station, 5 minutes
+		     (387,415),
+		     // Back Bay station dwell, 3 minutes
+		     (60,180),
+		     // Lansdowne to Back Bay, 4-5 minutes
+		     (178,191),
+		     // Lansdowne station dwell, 2 minutes
+		     (60,120),
+		     // Boston Landing to Lansdowne, 4-5 minutes
+		     (91,98),(0,0),(252,270),
+		     // Boston Landing station dwell, 2 minutes
+		     (60,120),
+		     // Newtonville to Boston Landing, 3-5 minutes
+		     // We don't know the exact mileposts of Boston
+		     // Landing and CP 6 (they are newer than the list
+		     // we have) but CP 6 is about a mile from Boston
+		     // Landing and about 3 miles from Newtonville.
+		     // TRACK SWITCH to track 2 for local Newton stops
+		     (96,103),(15,60),(191,205),
+		     // Newtonville station dwell, 2 minutes
+		     (60,120),
+		     // West Newton to Newtonville, 2-3 minutes
+		     (103,111),
+		     // West Newton station dwell, 2 minutes
+		     (60,120),
+		     // Auburndale to West Newton, 2 minutes
+		     (111,119),
+		     // Auburndale station dwell, 2 minutes
+		     (60,120),
+		     // Wellesley Farms to Auburndale, 3-4 minutes
+		     // TRACK SWITCH back to track 1
+		     (118,127),(15,60),(111,119),
+		     // Wellesley Farms station dwell, 2 minutes
+		     (60,120),
+		     // Wellesley Hills to Wellesley Farms, 2-3 minutes
+		     (103,111),
+		     // Wellesley Hills station dwell, 2 minutes
+		     (60,120),
+		     // Wellesley Square to Wellesley Hills, 2-3 minutes
+		     (118,127),
+		     // Wellesley Square station dwell, 2 minutes
+		     (60,120),
+		     // Natick Center to Wellesley Square, 3-5 minutes
+		     (250,268),
+		     // Natick Center station dwell, 2 minutes
+		     // This will be better when the new station opens
+		     (60,120),
+		     // West Natick to Natick Center, 4-6 minutes
+		     (191,205),
+		     // West Natick station dwell, 2 minutes
+		     (60,120),
+		     // Framingham to West Natick, 4-5 minutes
+		     (190,205),
+		     // Framingham station dwell 3-5 minutes
+		     (300,300),
+		     // CP 22 to Framingham
+		     (150,150)
+		   ]
+}
+
+// inbound local
+train {
+	start_time = (0,3600)
+	total_time = 4800 // worst case with 2 diverging moves
+	route = [901,213,214,215,216,217,218,219,220,221,222,223,224,225,
+	      	 226,227,229,230,231,232,233,234,235,236,237,238,
+		 501,502,503,504,505,506]
+	req_times = [
+		     // Fountain St. to Framingham
+		     (150,150),
+		     // Framingham station dwell, 5 minutes
+		     (300,300),
+		     // Framingham to West Natick, 4-5 minutes
+		     (190,205),
+		     // West Natick station dwell, 2 minutes
+		     (60,120),
+		     // West Natick to Natick Center, 4-6 minutes
+		     (191,205),
+		     // Natick Center station dwell, 2 minutes
+		     // This will be better when the new station opens
+		     (60,120),
+		     // Natick Center to Wellesley Square, 3-5 minutes
+		     (250,268),
+		     // Wellesley Square station dwell, 2 minutes
+		     (60,120),
+		     // Wellesley Square to Wellesley Hills, 2-3 minutes
+		     (118,127),
+		     // Wellesley Hills station dwell, 2 minutes
+		     (60,120),
+		     // Wellesley Hills to Wellesley Farms, 2-3 minutes
+		     (103,111),
+		     // Wellesley Farms station dwell, 2 minutes
+		     (60,120),
+		     // Wellesley Farms to Auburndale, 3-4 minutes
+		     // Assume no extra time at interlocking as we are
+		     // not taking the diverging route in this direction.
+		     (111,119),(0,0),(118,127),
+		     // Auburndale station dwell, 2 minutes
+		     (60,120),
+		     // Auburndale to West Newton, 2 minutes
+		     (111,119),
+		     // West Newton station dwell, 2 minutes
+		     (60,120),
+		     // West Newton to Newtonville, 2-3 minutes
+		     (103,111),
+		     // Newtonville station dwell, 2 minutes
+		     (60,120),
+		     // Newtonville to Boston Landing, 3-5 minutes
+		     // We don't know the exact mileposts of Boston
+		     // Landing and CP 6 (they are newer than the list
+		     // we have) but CP 6 is about a mile from Boston
+		     // Landing and about 3 miles from Newtonville
+		     (191,205),(0,0),(96,103),
+		     // Boston Landing station dwell, 2 minutes
+		     (60,120),
+		     // Boston Landing to Lansdowne, 4-5 minutes
+		     // Assume the time splits evenly even though the
+		     // distance doesn't, because we're going really
+		     // slowly here.
+		     (252,270),(0,0),(91,98),
+		     // Lansdowne station dwell, 2 minutes
+		     (60,120),
+		     // Lansdowne to Back Bay, 4-5 minutes
+		     (178,191),
+		     // Back Bay station dwell, 3 minutes
+		     (60,180),
+		     // Back Bay to South Station, 5 minutes
+		     (387,415)
+		   ]
+}
+
+// Inbound express
+// 2 minutes of each interstation are assumed to represent dwell and
+// stop penalty, since we don't know what the actual interstation time
+// is.
+//
+// Best case: 4532 s (76 minutes)
+// Worst case: 5183 s (87 minutes)
+train {
+	start_time = (0,3600)
+	total_time = 5200
+	route = [201,202,203,204,205,206,207,208,209,210,211,212,213,
+	      	 214,215,216,217,218,219,220,221,222,223,224,225,126,127,
+		 235,236,237,238,501,502,503,
+	       	 504,505,506]
+	req_times = [
+		     // Assuming the train is out of the yard (deal with
+		     // pull-in and pull-out moves later).
+		     // Guessing here, Worcester to CP 43 3 minutes,
+		     // CP 43 10 to 30 seconds, CP 43 to Grafton 9-12 minutes
+		     (330,354),(0,0),(460,493),
+		     // Grafton station dwell 2 minutes
+		     (60,120),
+		     // Grafton to Westboro, 4-5 minutes
+		     (185,198),
+		     // Westboro station dwell, 2 minutes
+		     (60,120),
+		     // Westboro to Cordaville, 8 minutes
+		     (441,472),
+		     // Cordaville station dwell, 2 minutes
+		     (60,120),
+		     // Cordaville to Ashland, 3-5 minutes
+		     (173,186),
+		     // Ashland station dwell, 2-3 minutes
+		     (60,120),
+		     // Ashland to CP 22 to Framingham, 4 to 9 minutes
+		     (252,270),(0,0),
+		     // Framingham station dwell 3-5 minutes
+		     (60,120),
+		     // Framingham to West Natick, 4-5 minutes
+		     (190,204),
+		     // West Natick station dwell, 3-4 minutes
+		     (60,120),
+		     // West Natick to Boston Landing, 16-20 minutes
+		     // West Natick to Natick Center
+		     (103,110),
+		     // Natick Center station dwell
+		     (0,0),
+		     // Natick Center to Wellesley Square
+		     (141,149),
+		     // Wellesley Square station dwell
+		     (0,0),
+		     // Wellesley Square to Wellesley Hills
+		     (57,60),
+		     // Wellesley Hills station dwell
+		     (0,0),
+		     // Wellesley Hills to Wellesley Farms
+		     (47,50),
+		     // Wellesley Farms station dwell
+		     (0,0),
+		     // Wellesley Farms to Boston Landing, 8-11 minutes
+		     // Wellesley Farms to CP 11
+		     (52,55),
+		     // CP 11, TRACK CHANGE
+		     (30,60),
+		     // CP 11 to CP 6
+		     (257,275),
+		     // CP 6 to Boston Landing, TRACK CHANGE
+		     // We don't know the exact mileposts of Boston
+		     // Landing and CP 6 (they are newer than the list
+		     // we have) but CP 6 is about a mile from Boston
+		     // Landing
+		     (30,60),(96,103),
+		     // Boston Landing station dwell, 2 minutes
+		     (60,120),
+		     // Boston Landing to Lansdowne, 4-5 minutes
+		     // Assume the time splits evenly even though the
+		     // distance doesn't, because we're going really
+		     // slowly here.
+		     (252,270),(0,0),(91,98),
+		     // Lansdowne station dwell, 2-3 minutes
+		     (60,120),
+		     // Lansdowne to Back Bay, 4-5 minutes
+		     (178,191),
+		     // Back Bay station dwell, 3-5 minutes
+		     (60,180),
+		     // Back Bay to South Station, 5 minutes
+		     (387,415)
+		   ]
+}
+
+// Outbound express
+// 2 minutes of each interstation are assumed to represent dwell and
+// stop penalty, since we don't know what the actual interstation time
+// is.
+//
+// Best case: 4472 s (75 minutes)
+// Worst case: 5063 s (85 minutes)
+train {
+	start_time = (0,3600)
+	total_time = 5200
+	route = [706,705,704,703,702,701,138,137,136,135,127,126,125,
+	         124,123,122,121,120,119,118,117,116,115,114,113,112,
+		 111,110,109,108,107,106,105,104,103,102,101]
+	req_times = [
+		     // Back Bay to South Station, 5 minutes
+		     (387,415),
+		     // Back Bay station dwell, 3-5 minutes
+		     (60,180),
+		     // Lansdowne to Back Bay, 4-5 minutes
+		     (178,191),
+		     // Lansdowne station dwell, 2-3 minutes
+		     (60,120),
+		     // Boston Landing to Lansdowne, 4-5 minutes
+		     // Assume the time splits evenly even though the
+		     // distance doesn't, because we're going really
+		     // slowly here.
+		     (91,98),(0,0),(252,270),
+		     // Boston Landing station dwell, 2 minutes
+		     (60,120),
+		     // CP 6 to Boston Landing
+		     // We don't know the exact mileposts of Boston
+		     // Landing and CP 6 (they are newer than the list
+		     // we have) but CP 6 is about a mile from Boston
+		     // Landing
+		     (96,103),(0,0),
+		     // CP 11 to CP 6
+		     (257,275),
+		     // CP 11
+		     (0,0),
+		     // Wellesley Farms to CP 11
+		     (52,55),
+		     // Wellesley Farms station dwell
+		     (0,0),
+		     // Wellesley Hills to Wellesley Farms
+		     (47,50),
+		     // Wellesley Hills station dwell
+		     (0,0),
+		     // Wellesley Square to Wellesley Hills
+		     (57,60),
+		     // Wellesley Square station dwell
+		     (0,0),
+		     // Natick Center to Wellesley Square
+		     (141,149),
+		     // Natick Center station dwell
+		     (0,0),
+		     // West Natick to Natick Center
+		     (103,110),
+		     // West Natick station dwell, 3-4 minutes
+		     (60,120),
+		     // Framingham to West Natick, 4-5 minutes
+		     (190,204),
+		     // Framingham station dwell 3-5 minutes
+		     (60,120),
+		     // Ashland to CP 22 to Framingham, 4 to 9 minutes
+		     (0,0),(252,270),
+		     // Ashland station dwell, 2-3 minutes
+		     (60,120),
+		     // Cordaville to Ashland, 3-5 minutes
+		     (173,186),
+		     // Cordaville station dwell, 2 minutes
+		     (60,120),
+		     // Westboro to Cordaville, 8 minutes
+		     (441,472),
+		     // Westboro station dwell, 2 minutes
+		     (60,120),
+		     // Grafton to Westboro, 4-5 minutes
+		     (185,198),
+		     // Grafton station dwell 2 minutes
+		     (60,120),
+		     // Assuming the train is out of the yard (deal with
+		     // pull-in and pull-out moves later).
+		     // Guessing here, Worcester to CP 43 3 minutes,
+		     // CP 43 10 to 30 seconds, CP 43 to Grafton 9-12 minutes
+		     (460,493),(0,0),(330,354)
+		   ]
+}
+
