@@ -98,7 +98,7 @@
 @font_size_station   = 110 // 96 // 128 // 64
 @font_size_time      = 110 // 96 // 128 // 64
 
-period = 2400
+period = 3600
 max_time = 7200
 
 // M0: Worcester Union Station
@@ -725,7 +725,7 @@ train {
 // Best case: 4532 s (76 minutes)
 // Worst case: 5183 s (87 minutes)
 train {
-	start_time = (0,3600)
+	start_time = (2700,3600)
 	total_time = 5200
 	route = [201,202,203,204,205,206,207,208,209,210,211,212,213,
 	      	 214,215,216,217,218,219,220,221,222,223,224,225,126,127,
@@ -736,7 +736,7 @@ train {
 		     // pull-in and pull-out moves later).
 		     // Guessing here, Worcester to CP 43 3 minutes,
 		     // CP 43 10 to 30 seconds, CP 43 to Grafton 9-12 minutes
-		     (330,354),(0,0),(460,493),
+		     (128,137),(0,0),(460,493),
 		     // Grafton station dwell 2 minutes
 		     (60,120),
 		     // Grafton to Westboro, 4-5 minutes
@@ -761,24 +761,114 @@ train {
 		     (60,120),
 		     // West Natick to Boston Landing, 16-20 minutes
 		     // West Natick to Natick Center
-		     (103,110),
+		     (170,182),
 		     // Natick Center station dwell
 		     (0,0),
 		     // Natick Center to Wellesley Square
-		     (141,149),
+		     (231,247),
 		     // Wellesley Square station dwell
 		     (0,0),
 		     // Wellesley Square to Wellesley Hills
-		     (57,60),
+		     (93,99),
 		     // Wellesley Hills station dwell
 		     (0,0),
 		     // Wellesley Hills to Wellesley Farms
-		     (47,50),
+		     (77,83),
 		     // Wellesley Farms station dwell
 		     (0,0),
 		     // Wellesley Farms to Boston Landing, 8-11 minutes
 		     // Wellesley Farms to CP 11
-		     (52,55),
+		     (85,90),
+		     // CP 11, TRACK CHANGE
+		     (30,60),
+		     // CP 11 to CP 6
+		     (257,275),
+		     // CP 6 to Boston Landing, TRACK CHANGE
+		     // We don't know the exact mileposts of Boston
+		     // Landing and CP 6 (they are newer than the list
+		     // we have) but CP 6 is about a mile from Boston
+		     // Landing
+		     (30,60),(96,103),
+		     // Boston Landing station dwell, 2 minutes
+		     (60,120),
+		     // Boston Landing to Lansdowne, 4-5 minutes
+		     // Assume the time splits evenly even though the
+		     // distance doesn't, because we're going really
+		     // slowly here.
+		     (252,270),(0,0),(91,98),
+		     // Lansdowne station dwell, 2-3 minutes
+		     (60,120),
+		     // Lansdowne to Back Bay, 4-5 minutes
+		     (178,191),
+		     // Back Bay station dwell, 3-5 minutes
+		     (60,180),
+		     // Back Bay to South Station, 5 minutes
+		     (387,415)
+		   ]
+}
+
+// Inbound superexpress
+// This train models the "Heart to Hub" morning express train that
+// only stops at Framingham and Lansdowne.  The Amtrak Lake Shore Limited
+// and any future Compass Rail (formerly East-West Rail) services would
+// be similar except for not stopping at Lansdowne.
+//
+// Best case: 4041 s (68 minutes)
+// Worst case: 4575 s (77 minutes)
+train {
+	start_time = (0,1800)
+	total_time = 4600
+	route = [201,202,203,204,205,206,207,208,209,210,211,212,213,
+	      	 214,215,216,217,218,219,220,221,222,223,224,225,126,127,
+		 235,236,237,238,501,502,503,
+	       	 504,505,506]
+	req_times = [
+		     // Assuming the train is out of the yard (deal with
+		     // pull-in and pull-out moves later).
+		     // CP 43 to CP 22, 23 minutes
+		     (128,137),(0,0),(434,464),
+		     // Grafton station dwell 2 minutes
+		     (0,0),
+		     // Grafton to Westboro, 4-5 minutes
+		     (151,162),
+		     // Westboro station dwell, 2 minutes
+		     (0,0),
+		     // Westboro to Cordaville, 8 minutes
+		     (415,444),
+		     // Cordaville station dwell, 2 minutes
+		     (0,0),
+		     // Cordaville to Ashland, 3-5 minutes
+		     (139,148),
+		     // Ashland station dwell, 2-3 minutes
+		     (0,0),
+		     // Ashland to CP 22 to Framingham, 4 to 9 minutes
+		     (220,236),(150,161),
+		     // Framingham station dwell 3-5 minutes
+		     (60,120),
+		     // Framingham to CP 11, 757 seconds
+		     // Framingham to West Natick, 4-5 minutes
+		     (114,121),
+		     // West Natick station dwell, 3-4 minutes
+		     (0,0),
+		     // West Natick to Natick Center
+		     (167,178),
+		     // Natick Center station dwell
+		     (0,0),
+		     // Natick Center to Wellesley Square
+		     (228,243),
+		     // Wellesley Square station dwell
+		     (0,0),
+		     // Wellesley Square to Wellesley Hills
+		     (91,98),
+		     // Wellesley Hills station dwell
+		     (0,0),
+		     // Wellesley Hills to Wellesley Farms
+		     (76,81),
+		     // Wellesley Farms station dwell
+		     (0,0),
+		     // Wellesley Farms to Boston Landing, 8-11 minutes
+		     // Wellesley Farms to CP 11
+		     (84,90),
 		     // CP 11, TRACK CHANGE
 		     (30,60),
 		     // CP 11 to CP 6
@@ -891,6 +981,90 @@ train {
 		     // Guessing here, Worcester to CP 43 3 minutes,
 		     // CP 43 10 to 30 seconds, CP 43 to Grafton 9-12 minutes
 		     (460,493),(0,0),(330,354)
+		   ]
+}
+
+// Outbound superexpress
+// This train models the reverse-peak morning express train that
+// only stops at Framingham and Lansdowne.  The Amtrak Lake Shore Limited
+// and any future Compass Rail (formerly East-West Rail) services would
+// be similar except for not stopping at Lansdowne.
+//
+// Best case: 4041 s (68 minutes)
+// Worst case: 4575 s (77 minutes)
+train {
+	start_time = (0,3600)
+	total_time = 4600
+	route = [706,705,704,703,702,701,138,137,136,135,127,126,125,124,123,
+	         122,121,120,119,118,117,116,115,114,113,112,111,110,109,108,
+		 107,106,105,104,103,102,101]
+	req_times = [
+		     // Back Bay to South Station, 5 minutes
+		     (387,415),
+		     // Back Bay station dwell, 3-5 minutes
+		     (60,180),
+		     // Lansdowne to Back Bay, 4-5 minutes
+		     (178,191),
+		     // Lansdowne station dwell, 2-3 minutes
+		     (60,120),
+		     // Boston Landing to Lansdowne, 4-5 minutes
+		     (91,98),(0,0),(252,270),
+		     // Boston Landing station dwell, 2 minutes
+		     (60,120),
+		     // CP 6 to Boston Landing
+		     // We don't know the exact mileposts of Boston
+		     // Landing and CP 6 (they are newer than the list
+		     // we have) but CP 6 is about a mile from Boston
+		     // Landing
+		     (96,103),(0,0),
+		     // CP 11 to CP 6
+		     (257,275),
+		     // CP 11
+		     (0,0),
+		     // Wellesley Farms to CP 11
+		     (84,90),
+		     // Wellesley Farms station dwell
+		     (0,0),
+		     // Wellesley Hills to Wellesley Farms
+		     (76,81),
+		     // Wellesley Hills station dwell
+		     (0,0),
+		     // Wellesley Square to Wellesley Hills
+		     (91,98),
+		     // Wellesley Square station dwell
+		     (0,0),
+		     // Natick Center to Wellesley Square
+		     (228,243),
+		     // Natick Center station dwell
+		     (0,0),
+		     // West Natick to Natick Center
+		     (167,178),
+		     // West Natick station dwell, 3-4 minutes
+		     (0,0),
+		     // Framingham to West Natick, 4-5 minutes
+		     (114,121),
+		     // Framingham station dwell 3-5 minutes
+		     (60,120),
+		     // Ashland to CP 22 to Framingham, 4 to 9 minutes
+		     (150,161),(220,236),
+		     // Ashland station dwell, 2-3 minutes
+		     (0,0),
+		     // Cordaville to Ashland, 3-5 minutes
+		     (139,148),
+		     // Cordaville station dwell, 2 minutes
+		     (0,0),
+		     // Westboro to Cordaville, 8 minutes
+		     (415,444),
+		     // Westboro station dwell, 2 minutes
+		     (0,0),
+		     // Grafton to Westboro, 4-5 minutes
+		     (151,162),
+		     // Grafton station dwell 2 minutes
+		     (0,0),
+		     // Assuming the train is out of the yard (deal with
+		     // pull-in and pull-out moves later).
+		     // CP 43 to CP 22, 23 minutes
+		     (434,464),(0,0),(128,137)
 		   ]
 }
 
