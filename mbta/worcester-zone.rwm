@@ -356,7 +356,7 @@ struct {
        capacity = 2
        headway = 300
        links = [123,124,223,224]
-//       fifos = [(123,124),(124,123),(223,224),(224,223)]
+       fifos = [(123,124),(124,123),(223,224),(224,223)]
 //       excls = [(123,124),(223,224)]
 }
 
@@ -377,76 +377,75 @@ struct {
        links = [125,126,225,226]
 }
 
-// M28: CP 11 to Auburndale (track 2)
+// M28: CP 11 to Auburndale
 struct {
        capacity = 1
        headway = 300
-       links = [226,227]
-       fifos = [(226,227),(227,226)]
-//       excls = [(226,227)]
+       links = [126,127,226,227]
+       fifos = [(126,127),(127,126),(226,227),(227,226)]
+       excls = [(126,127),(226,227)]
 }
 
-// M29: CP 11 to CP 6 (track 1)
-struct {
-       capacity = 4
-       headway = 300
-       links = [126,127]
-       fifos = [(126,127),(127,126)]
-//       excls = [(126,127)]
-}
+// not modeling Riverside Jct. here
 
 // M30: Auburndale station
 struct {
        station
        name = "Auburndale"
-       capacity = 1
+       capacity = 2
        headway = 300
-       links = [227,229]
+       links = [127,129,227,229]
+       fifos = [(127,129),(129,127),(227,229),(229,227)]
+       excls = [(127,129),(227,229)]
 }
 
 // M31: Auburndale to West Newton
 struct {
-       capacity = 1
+       capacity = 2
        headway = 300
-       links = [229,230]
-       fifos = [(229,230),(230,229)]
-//       excls = [(229,230)]
+       links = [129,130,229,230]
+       fifos = [(129,130),(130,129),(229,230),(230,229)]
+       excls = [(129,130),(229,230)]
 }       
 
 // M32: West Newton station
 struct {
        station
        name = "West Newton"
-       capacity = 1
+       capacity = 2
        headway = 300
-       links = [230,231]
+       links = [130,131,230,231]
+       fifos = [(130,131),(131,130),(230,231),(231,230)]
+       excls = [(130,131),(230,231)]
 }
 
 // M33: West Newton to Newtonville
 struct {
-       capacity = 1
+       capacity = 2
        headway = 300
-       links = [231,232]
-       fifos = [(231,232),(232,231)]
-//       excls = [(231,232)]
+       links = [131,132,231,232]
+       fifos = [(131,132),(132,131),(231,232),(232,231)]
+       excls = [(131,132),(231,232)]
 }
 
 // M34: Newtonville station
 struct {
        station
        name = "Newtonville"
-       capacity = 1
+       capacity = 2
        headway = 300
-       links = [232,233]
+       links = [132,133,232,233]
+       fifos = [(132,133),(133,132),(232,233),(233,232)]
+       excls = [(132,133),(232,233)]
 }
 
 // M35: Newtonville to CP 6
 struct {
-       capacity = 1
+       capacity = 2
        headway = 300
-       links = [233,234]
-       fifos = [(233,234),(234,233)]
-//       excls = [(233,234)]
+       links = [133,134,233,234]
+       fifos = [(133,134),(134,133),(233,234),(234,233)]
+       excls = [(133,134),(233,234)]
 }
 
 // M36: CP 6
@@ -454,7 +453,7 @@ struct {
        name = "CP 6"
        capacity = 1
        headway = 300
-       links = [127,135,234,235]
+       links = [134,135,234,235]
 }
 
 // M37: CP 6 to Boston Landing
@@ -473,7 +472,7 @@ struct {
        capacity = 2
        headway = 300
        links = [136,137,236,237]
-//       fifos = [(136,137),(137,136),(236,237),(237,236)]
+       fifos = [(136,137),(137,136),(236,237),(237,236)]
 //       excls = [(136,137),(236,237)]
 }
 
@@ -510,7 +509,7 @@ struct {
        capacity = 2
        headway = 300
        links = [702,703,502,503]
-//       fifos = [(702,703),(703,702),(502,503),(503,502)]
+       fifos = [(702,703),(703,702),(502,503),(503,502)]
 //       excls = [(702,703),(502,503)]
 }
 
@@ -576,6 +575,7 @@ struct {
 //
 // Worst case outbound: 4624 s (77 minutes) inclusive, 70 schedule
 //
+// outbound local
 train {
 	start_time = (0,3600)
 	total_time = 4800 // worst case with 2 diverging moves
@@ -725,12 +725,14 @@ train {
 // Best case: 4532 s (76 minutes)
 // Worst case: 5183 s (87 minutes)
 train {
-	start_time = (2700,3600)
+	start_time = (1800,3600)
 	total_time = 5200
 	route = [201,202,203,204,205,206,207,208,209,210,211,212,213,
-	      	 214,215,216,217,218,219,220,221,222,223,224,225,126,127,
-		 235,236,237,238,501,502,503,
-	       	 504,505,506]
+	      	 214,215,216,217,218,219,220,221,222,223,224,225,
+		 // switch to track 1 at CP 11
+		 126,127,129,130,131,132,133,134,
+		 // switch back to track 2 at CP 6
+		 235,236,237,238,501,502,503,504,505,506]
 	req_times = [
 		     // Assuming the train is out of the yard (deal with
 		     // pull-in and pull-out moves later).
@@ -781,8 +783,18 @@ train {
 		     (85,90),
 		     // CP 11, TRACK CHANGE
 		     (30,60),
-		     // CP 11 to CP 6
-		     (257,275),
+		     // CP 11 to CP 6, 257 s non-stop
+		     // CP 11 to Auburndale
+		     (57,60),
+		     (0,0),
+		     // Auburndale to West Newton
+		     (52,55),
+		     (0,0),
+		     // West Newton to Newtonville
+		     (47,50),
+		     (0,0),
+		     // Newtonville to CP 6
+		     (103,110),
 		     // CP 6 to Boston Landing, TRACK CHANGE
 		     // We don't know the exact mileposts of Boston
 		     // Landing and CP 6 (they are newer than the list
@@ -816,10 +828,13 @@ train {
 // Best case: 4041 s (68 minutes)
 // Worst case: 4575 s (77 minutes)
 train {
-	start_time = (0,1800)
+	start_time = (0,900)
 	total_time = 4600
 	route = [201,202,203,204,205,206,207,208,209,210,211,212,213,
-	      	 214,215,216,217,218,219,220,221,222,223,224,225,126,127,
+	      	 214,215,216,217,218,219,220,221,222,223,224,225,
+		 // switch to track 1 at CP 11
+		 126,127,129,130,131,132,133,134,
+		 // switch back to track 2 at CP 6
 		 235,236,237,238,501,502,503,
 	       	 504,505,506]
 	req_times = [
@@ -871,8 +886,18 @@ train {
 		     (84,90),
 		     // CP 11, TRACK CHANGE
 		     (30,60),
-		     // CP 11 to CP 6
-		     (257,275),
+		     // CP 11 to CP 6, 257 s non-stop
+		     // CP 11 to Auburndale
+		     (57,60),
+		     (0,0),
+		     // Auburndale to West Newton
+		     (52,55),
+		     (0,0),
+		     // West Newton to Newtonville
+		     (47,50),
+		     (0,0),
+		     // Newtonville to CP 6
+		     (103,110),
 		     // CP 6 to Boston Landing, TRACK CHANGE
 		     // We don't know the exact mileposts of Boston
 		     // Landing and CP 6 (they are newer than the list
@@ -907,7 +932,8 @@ train {
 train {
 	start_time = (0,3600)
 	total_time = 5200
-	route = [706,705,704,703,702,701,138,137,136,135,127,126,125,
+	route = [706,705,704,703,702,701,138,137,136,135,134,133,132,
+	      	 131,130,129,127,126,125,
 	         124,123,122,121,120,119,118,117,116,115,114,113,112,
 		 111,110,109,108,107,106,105,104,103,102,101]
 	req_times = [
@@ -932,8 +958,18 @@ train {
 		     // we have) but CP 6 is about a mile from Boston
 		     // Landing
 		     (96,103),(0,0),
-		     // CP 11 to CP 6
-		     (257,275),
+		     // CP 6 to CP 11, 257 s non-stop
+		     // CP 6 to Newtonville
+		     (103,110),
+		     (0,0),
+		     // Newtonville to West Newton
+     		     (47,50),
+		     (0,0),
+		     // West Newton to Auburndale
+		     (52,55),
+		     (0,0),
+		     // Auburndale to CP 11
+		     (57,60),
 		     // CP 11
 		     (0,0),
 		     // Wellesley Farms to CP 11
@@ -995,7 +1031,8 @@ train {
 train {
 	start_time = (0,3600)
 	total_time = 4600
-	route = [706,705,704,703,702,701,138,137,136,135,127,126,125,124,123,
+	route = [706,705,704,703,702,701,138,137,136,135,134,133,132,131,130,
+	         129,127,126,125,124,123,
 	         122,121,120,119,118,117,116,115,114,113,112,111,110,109,108,
 		 107,106,105,104,103,102,101]
 	req_times = [
@@ -1017,8 +1054,18 @@ train {
 		     // we have) but CP 6 is about a mile from Boston
 		     // Landing
 		     (96,103),(0,0),
-		     // CP 11 to CP 6
-		     (257,275),
+		     // CP 6 to CP 11, 257 s non-stop
+		     // CP 6 to Newtonville
+		     (103,110),
+		     (0,0),
+		     // Newtonville to West Newton
+     		     (47,50),
+		     (0,0),
+		     // West Newton to Auburndale
+		     (52,55),
+		     (0,0),
+		     // Auburndale to CP 11
+		     (57,60),
 		     // CP 11
 		     (0,0),
 		     // Wellesley Farms to CP 11
